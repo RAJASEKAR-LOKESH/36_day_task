@@ -1,0 +1,88 @@
+Users
+{
+  "_id": ObjectId,
+  "name": String,
+  "email": String,
+  "mentee_count": Number,
+  "attendance": [ { "date": Date, "status": String } ],
+  "tasks_submitted": [ { "task_id": ObjectId, "submitted": Boolean } ],
+  "codekata_problems_solved": Number
+}
+codekata
+{
+  "_id": ObjectId,
+  "user_id": ObjectId,
+  "problems_solved": Number,
+  "date_solved": Date
+}
+attendance{
+  "_id": ObjectId,
+  "user_id": ObjectId,
+  "date": Date,
+  "status": String
+}
+topics
+{
+  "_id": ObjectId,
+  "topic_name": String,
+  "date_taught": Date
+}
+tasks
+{
+  "_id": ObjectId,
+  "task_name": String,
+  "assigned_date": Date,
+  "due_date": Date
+}
+company_drives
+{
+  "_id": ObjectId,
+  "company_name": String,
+  "date_of_drive": Date,
+  "students_appeared": [ObjectId] // Array of user_ids
+}
+mentors
+{
+  "_id": ObjectId,
+  "name": String,
+  "mentees": [ObjectId] // Array of user_ids
+}
+
+1. db.topics.find({ date_taught: { $gte: ISODate("2020-10-01"), $lt: ISODate("2020-11-01") } });
+   db.tasks.find({ assigned_date: { $gte: ISODate("2020-10-01"), $lt: ISODate("2020-11-01") } });
+
+2. db.company_drives.find({ date_of_drive: { $gte: ISODate("2020-10-15"), $lt: ISODate("2020-11-01") } });
+
+3 db.company_drives.aggregate([
+  {
+    $lookup: {
+      from: "users",
+      localField: "students_appeared",
+      foreignField: "_id",
+      as: "students"
+    }
+  }
+]);
+
+4. db.codekata.aggregate([
+  { $group: { _id: "$user_id", total_problems_solved: { $sum: "$problems_solved" } } }]);
+
+5. db.codekata.aggregate([
+  { $group: { _id: "$user_id", total_problems_solved: { $sum: "$problems_solved" } } }]);
+
+6. db.users.aggregate([
+  {
+    $match: {
+      $and: [
+        { "attendance.date": { $gte: ISODate("2020-10-15"), $lt: ISODate("2020-11-01") } },
+        { "attendance.status": "absent" },
+        { "tasks_submitted.submitted": false },
+        { "tasks_submitted.date": { $gte: ISODate("2020-10-15"), $lt: ISODate("2020-11-01") } }
+      ]
+    }
+  },
+  { $count: "absent_users_with_incomplete_tasks" }
+]);
+
+
+
